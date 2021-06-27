@@ -7,6 +7,9 @@ import oandapyV20.endpoints.positions as positions
 import json
 import pandas as pd
 
+import datetime
+from datetime import (timedelta, date)
+
 from ta import trend
 from ta import momentum
 
@@ -193,6 +196,32 @@ def get_oanda_account_credentials(oanda_account_credentials_path, account_name):
 
 
 ############## STREAM REAL TIME DATA ##############
+
+def get_extraction_time(granularity):
+    extraction = False
+    while extraction == False:
+        time_now = datetime.datetime.utcnow()
+        if granularity == "M1":
+            if (time_now.minute % 1 == 0) & (time_now.second == 0):
+                return True
+        elif granularity == "M5":
+            if (time_now.minute % 5 == 0) & (time_now.second == 0):
+                return True
+        elif granularity == "M15":
+            if (time_now.minute % 15 == 0) & (time_now.second == 0):
+                return True
+        elif granularity == "M30":
+            if (time_now.minute % 30 == 0) & (time_now.second == 0):
+                return True
+        elif granularity == "H1":
+            if (time_now.hour % 1 == 0) & (time_now.minute == 0) & (time_now.second == 0):
+                return True
+        elif granularity == "H4":
+            if (time_now.minute % 4 == 0) & (time_now.minute == 0) & (time_now.second == 0):
+                return True
+
+
+
 def get_candle_data(account_id, access_token, instrument, granularity, number_of_candles=200):
     client = oandapyV20.API(access_token=access_token, environment = "practice" or "live")
     params = {
@@ -218,13 +247,20 @@ def get_macd_indicator(df, window_slow: int = 26, window_fast: int = 12, window_
     return df
 
 def get_sma_indicator(df, price_type = 'price_close', window = 200):
-    indicator_sma = trend.SMAIndicator(close = df[price_type], window=200)
+    indicator_sma = trend.SMAIndicator(close = df[price_type], window=window)
     df['sma_' + str(window)] = indicator_sma.sma_indicator()
     return df
 
 def get_rsi_indicator(df, price_type = 'price_close', window = 14):
-    indicator_rsi = momentum.RSIIndicator(close = df[price_type], window=14)
+    indicator_rsi = momentum.RSIIndicator(close = df[price_type], window=window)
     df['rsi_' + str(window)] = indicator_rsi.rsi()
+    return df
+
+def get_adx_indicator(df, high = "price_high", low = "price_low", close = 'price_close', window = 14):
+    indicator_adx = trend.ADXIndicator(high = df[high], low = df[low], close = df[close], window = window)
+    df['adx'] = indicator_adx.adx()
+    df['adx_neg'] = indicator_adx.adx_neg()
+    df['adx_pos'] = indicator_adx.adx_pos()
     return df
 
 
