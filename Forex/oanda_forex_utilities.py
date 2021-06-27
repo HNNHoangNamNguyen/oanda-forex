@@ -189,8 +189,8 @@ def get_position_details(account_id, access_token, instrument):
 
 
 ############## GET ACCCOUNT ID AND ACCCESS TOKEN ##############
-def get_oanda_account_credentials(oanda_account_credentials_path, account_name):
-    oanda_account_credentials = json.load(open(oanda_account_credentials_path + '/oanda_account_credentials.json'))
+def get_oanda_account_credentials( account_name, oanda_account_credentials_path = ''):
+    oanda_account_credentials = json.load(open(oanda_account_credentials_path + 'oanda_account_credentials.json'))
     account_details = oanda_account_credentials[account_name]
     return account_details
 
