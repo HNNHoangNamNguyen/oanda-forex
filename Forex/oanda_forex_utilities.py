@@ -6,6 +6,8 @@ import oandapyV20.endpoints.positions as positions
 
 import json
 import pandas as pd
+import ast
+import glob
 
 import datetime
 from datetime import (timedelta, date)
@@ -13,12 +15,50 @@ from datetime import (timedelta, date)
 from ta import trend
 from ta import momentum
 
+
+
+
+############## READ FILE ##############
+def read_all_file_in_directory(directory, file_type, sep = "\t"):
+    print(directory)
+    file_list= [f for f in glob.glob(directory + "*." + file_type)]
+    
+    all_data = pd.DataFrame()
+    temp = pd.DataFrame()
+    for file in file_list:
+            df = pd.read_csv(file, sep= sep, encoding = "utf8", engine='python')
+            temp = pd.concat([temp, df])
+    all_data = pd.concat([all_data, temp])
+    return all_data
+
 ############## DATA CLEANING ##############
 def convert_to_json(text):
     try:
         return ast.literal_eval(text)
     except:
         return {}
+
+
+def clean_historical_candle_data(df, price_type = 'ask' ):
+    
+    df_modified = df[['complete', 'currency_pair', 'time', 'volume', price_type]]
+    df_modified[price_type] = df_modified[price_type].astype(str)
+    df_modified[price_type] = df_modified[price_type].apply(convert_to_json)
+    
+    price_df = pd.json_normalize(df_modified[price_type])
+    
+    df_modified = pd.merge(df_modified, price_df,
+                          left_index=True, right_index=True)
+    
+    df_modified = df_modified[['complete','currency_pair', 'time', 'volume','o', 'h', 'l', 'c']]
+    df_modified.columns = ['complete','currency_pair', 'time', 'volume','price_open','price_high', 'price_low', 'price_close']
+    
+    df_modified[["price_open", "price_high", "price_low", "price_close"]] = df_modified[["price_open", "price_high",
+                                                                                         "price_low", "price_close"]].apply(pd.to_numeric)
+    df_modified["time"] = pd.to_datetime(df_modified["time"])
+    
+    return df_modified
+
 
 def clean_candle_data(df, price_type = 'ask' ):
     
@@ -237,10 +277,10 @@ def get_candle_data(account_id, access_token, instrument, granularity, number_of
     return df
 
 
-############## TECHNICCAL INDICATOR ##############
+############## TECHNICAL INDICATOR ##############
     
-def get_macd_indicator(df, window_slow: int = 26, window_fast: int = 12, window_sign: int = 9, fillna: bool = False):
-    indicator_macd = trend.MACD(close = df["price_close"])
+def get_macd_indicator(df, price_type = 'price_close', window_slow: int = 26, window_fast: int = 12, window_sign: int = 9, fillna: bool = False):
+    indicator_macd = trend.MACD(close = df[price_type], window_slow = window_slow, window_fast = window_fast, window_sign= window_sign, fillna = fillna)
     df['macd'] = indicator_macd.macd()
     df['macd_signal'] = indicator_macd.macd_signal()
     df['macd_signal_diff'] = indicator_macd.macd_diff()
