@@ -12,9 +12,10 @@ import glob
 import datetime
 from datetime import (timedelta, date)
 
+import ta
 from ta import trend
 from ta import momentum
-
+from ta import volatility
 
 
 
@@ -303,6 +304,44 @@ def get_adx_indicator(df, high = "price_high", low = "price_low", close = 'price
     df['adx_pos'] = indicator_adx.adx_pos()
     return df
 
+def get_atr_indicator(df, high = "price_high", low = "price_low", close = 'price_close', window = 14):
+    indicator_atr = volatility.AverageTrueRange(high = df[high], low = df[low], close = df[close], window = window)
+    df['atr'] = indicator_atr.average_true_range()
+    return df
+
+def get_aroon_indicator(df,close = 'price_close', window = 25):
+    indicator_aroon = trend.AroonIndicator(close = df[close], window = window)
+    df['aroon'] = indicator_aroon.aroon_indicator()
+    df['aroon_down'] = indicator_aroon.aroon_down()
+    df['aroon_up'] = indicator_aroon.aroon_up()
+    return df
+
+
+def get_cmf_indicator(df, high = "price_high", low = "price_low", close = 'price_close', volume = "volume", window = 20, fillna = False):
+    indicator_cmf = ta.volume.ChaikinMoneyFlowIndicator(df[high],df[low], df[close], df[volume], 20, False)
+    df['cmf'] = indicator_cmf.chaikin_money_flow()
+    return df
+
+
+def get_cci_indicator(df, high = "price_high", low = "price_low", close = 'price_close', window = 20):
+    indicator_cci = trend.CCIIndicator(high = df[high], low = df[low], close = df[close], window = window)
+    df['cci'] = indicator_cci.cci()
+    return df
+
+def get_ichimoku_indicator(df, high = "price_high", low = "price_low",
+                           window1 = 9, window2=26, window3 = 52, visual = False, fillna = False):
+    indicator_ichimoku = trend.IchimokuIndicator(high = df[high], low = df[low],
+                                                 window1 = window1, window2 = window2, window3 = window3, visual = visual, fillna = fillna)
+    df['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
+    df['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
+    df['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
+    df['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
+    return df
+
+def get_dpo_indicator(df, close = 'price_close', window = 20):
+    indicator_dpo = trend.DPOIndicator(close = df[close], window = window)
+    df['dpo'] = indicator_dpo.dpo()
+    return df
 
 
 
