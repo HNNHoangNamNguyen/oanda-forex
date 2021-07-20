@@ -177,6 +177,26 @@ def create_market_order_with_trailing_sl_only(account_id, access_token, instrume
 
     client.request(r)
 
+
+
+def create_market_order_with_trailing_sl_only_live(account_id, access_token, instrument, order_type, order_quantity, trailing_sl_pip):
+    order_quantity = order_quantity  if order_type == "BUY" else -abs(order_quantity)
+    trailingStopLossOnFill = TrailingStopLossDetails(distance=trailing_sl_pip/10000)
+    data = {
+        "order": {
+            "units": str(order_quantity),
+            "instrument": instrument,
+            "timeInForce": "FOK",
+            "type": "MARKET",
+            "positionFill": "DEFAULT",
+            "trailingStopLossOnFill": trailingStopLossOnFill.data,
+        },
+    }
+    client = oandapyV20.API(access_token=access_token, environment = "live" or "practice")
+    r = orders.OrderCreate(accountID = account_id, data=data)
+
+    client.request(r)
+
 def create_limit_order(account_id, access_token, instrument, order_type, order_quantity, order_price):
     order_quantity = order_quantity  if order_type == "BUY" else -abs(order_quantity)
     data = {
