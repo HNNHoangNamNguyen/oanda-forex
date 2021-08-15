@@ -243,8 +243,8 @@ def get_position_details(account_id, access_token, instrument):
     client = oandapyV20.API(access_token=access_token)
     r = positions.PositionDetails(accountID=account_id, instrument = instrument)
     response = client.request(r)["position"]
-    long_position_units = response["long"]["units"]
-    short_position_units = response["short"]["units"]
+    long_position_units = int(response["long"]["units"])
+    short_position_units = int(response["short"]["units"])
     return {'long':long_position_units,
             'short':short_position_units,}
 
@@ -361,6 +361,11 @@ def get_ichimoku_indicator(df, high = "price_high", low = "price_low",
 def get_dpo_indicator(df, close = 'price_close', window = 20):
     indicator_dpo = trend.DPOIndicator(close = df[close], window = window)
     df['dpo'] = indicator_dpo.dpo()
+    return df
+
+def get_ema_indicator(df, price_type = 'price_close', window = 200):
+    indicator_ema = trend.EMAIndicator(close = df[price_type], window=window)
+    df['ema_' + str(window)] = indicator_ema.ema_indicator()
     return df
 
 
